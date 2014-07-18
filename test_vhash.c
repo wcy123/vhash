@@ -1,118 +1,154 @@
-#define _POSIX_C_SOURCE 
-//#define _GNU_SOURCE
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <assert.h>
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <iterator>
+#include <functional>
+#include <deque>
+using namespace std;
+
+#include <functional>
 #include "vhash.h"
-//#include "vhash_imp.h"
-/* void test_is_overload() */
-/* { */
-/*   for(size_t N = 32; N < 65536; N = N*2){ */
-/*     int count = 0; */
-/*     for(size_t n = 0; n < N; ++n){ */
-/*       if(is_overload(n,N)){ */
-/*         fprintf(stderr,__FILE__ ":%d:[%s] %ld %ld %f\n", __LINE__, __FUNCTION__,n,N, (double)n/N); */
-/*         if(count ++ >= 0){ */
-/*           break; */
-/*         } */
-/*       } */
-/*     } */
-/*   } */
-/*   return; */
-/* } */
-void test_0()
+
+using namespace voba;
+using namespace std;
+
+#include <vector>
+#include <bitset>
+#include <string>
+#include <utility>
+ 
+struct Key {
+  std::string first;
+  std::string second;
+};
+ 
+struct KeyHash {
+  std::size_t operator()(const Key& k) const
+    {
+      return std::hash<std::string>()(k.first) ^
+        (std::hash<std::string>()(k.second) << 1);
+    }
+};
+struct KeyEqual {
+  bool operator()(const Key& lhs, const Key& rhs) const
+    {
+      return lhs.first == rhs.first && lhs.second == rhs.second;
+    }
+};
+template<>
+const std::string voba::unordered_map<std::string, std::string>::EMPTY("0");
+template<>
+const std::string voba::unordered_map<std::string, std::string>::DELETED("1");
+template<>
+const Key voba::unordered_map<Key, std::string,
+                              KeyHash,
+                              KeyEqual
+                              >::EMPTY = Key({"a","b"});
+template<>
+const Key voba::unordered_map<Key, std::string,
+                              KeyHash,
+                              KeyEqual
+                              >::DELETED = Key({"deleted","deleted"});
+template <class A>
+void dump(const A & x)
 {
-    vhash_t * h = vhash_create(VHASH_KEY_LONG,0);
-    vhash_insert(h,0,0);
-    vhash_insert(h,1,1);
-    vhash_insert(h,2,2);
-    assert(vhash_size(h) == 2);
+  for(typename A::const_iterator i = x.begin();
+      i != x.end();
+      ++i){
+    cout << i->first << " : " << i->second << endl;
+  }
 }
 void test_1()
 {
-    vhash_t * h = vhash_create(VHASH_KEY_LONG,0);
-    for(size_t i = 0 ; i < 7; i ++){
-        vhash_insert(h, i + 7, i );
-        vhash_print(h,stdout);
-    }
-    assert(vhash_size(h) == 7);
+    // default constructor: empty map
+    voba::unordered_map<std::string, std::string> m1;
+    return;
 }
 void test_2()
 {
-    vhash_t * h = vhash_create(VHASH_KEY_LONG,0);
-    for(size_t i = 0 ; i < 9; i ++){
-        vhash_insert(h, 6 + (i+1)*8, i );
+    voba::unordered_map<int, std::string> m2 =
+        {
+            {0, "0"},
+            {1, "1"},
+            {2, "2"},
+            {3, "3"},
+            {4, "4"},
+            {5, "5"},
+            {6, "6"},
+            {7, "7"},
+            {8, "8"},
+            {9, "9"},
+            {10, "10"},
+        };
+    dump(m2);
+    for(typename voba::unordered_map<int, std::string>::iterator i = m2.begin();
+        i != m2.end();
+        ++i){
+        voba::unordered_map<int, std::string>::iterator it = m2.find(i->first);
+        cout << i->first << " : " << i->second << " ||  "
+             << it->first << " : " << it->second
+             << endl;
     }
-    vhash_print(h,stdout);
-    assert(vhash_size(h) == 9);
-    for(size_t i = 0 ; i < 9; i ++){
-        hk_t k = 6 + (i+1)*8;
-        pair_t * p = vhash_get(h,k);
-        fprintf(stderr,__FILE__ ":%d:[%s] 0x%lx -> 0x%lx\n", __LINE__, __FUNCTION__
-                ,k
-                ,p->v);
-        assert(p && p->k == k && p->v == (hv_t)i);
+    m2.clear();
+    cerr <<  __FILE__ << ":" << __LINE__ << " [" << __FUNCTION__<< "] "
+         << "m2.size() "  << m2.size() << " "
+         << "m2.empty() "  << m2.empty() << " "
+         << endl;
+    while(!m2.empty()){
+        cerr <<  __FILE__ << ":" << __LINE__ << " [" << __FUNCTION__<< "] "
+             << "erasing " << m2.begin()->first << " "
+             << endl;
+        m2.erase(m2.find(m2.begin()->first));
+        dump(m2);
     }
-    for(size_t i = 0 ; i < 9; i ++){
-        hk_t k = 6 + (i+1)*8;
-        pair_t * p = vhash_delete(h,k);
-        assert(p);
-        fprintf(stderr,__FILE__ ":%d:[%s] %ld\n", __LINE__, __FUNCTION__,
-                vhash_size(h));
-        assert(vhash_size(h) == 9 - i -1);
-    }
-    vhash_print(h,stdout);
-    assert(vhash_size(h) == 0);
-    size_t n_of_grow = h->n_of_grow;
-    for(size_t i = 0 ; i < 9; i ++){
-        vhash_insert(h, 6 + (i+1)*8, i );
-    }
-    vhash_print(h,stdout);
-    assert(vhash_size(h) == 9);  
-    assert(h->n_of_grow == n_of_grow);  
+    dump(m2);
 }
-int test_3(int argc, char *argv[])
+void test_3()
 {
-    static char buf[1024];
-    vhash_t * h = vhash_create(VHASH_KEY_STRING,0);
-    FILE * fp = fopen(argv[1],"r");
-    assert(fp);
-    char * s;
-    if(1) 
-        while( (s = fgets(buf,1024,fp)) != NULL){
-            char * t;
-            char * save;
-            int i = 0;
-            while((t = strtok_r(i==0?s:NULL, " \n\t!={}\",()", &save)) != NULL){
-                char * t2 = strdup(t);
-                pair_t * p = vhash_get(h,(hk_t) t2);
-                if(p){
-                    p->v++;
-                }else{
-                    vhash_insert(h,(hk_t)t2,1);
-                }
-                i++;
-            }
-        }
-    fclose(fp);
-    fp = stdout;
-    for(size_t s = vhash_iter_start(h);
-        s !=vhash_iter_end(h);
-        s = vhash_iter_next(h,s)){
-        pair_t * p = vhash_iter_get(h,s);
-        fprintf(stderr,__FILE__ ":%d:[%s]\t%d\t%s\n", __LINE__, __FUNCTION__,
-                (int)p->v,
-                (const char *) p->k);
-    }
-    vhash_destroy(h);
-    return 0;
+    typedef voba::set<int> a;
+    typedef voba::unordered_map<int, int> b;
+    cerr <<  __FILE__ << ":" << __LINE__ << " [" << __FUNCTION__<< "] "
+         << "a::value_type "  << sizeof(a::value_type) << " "
+         << "b::value_type "  << sizeof(b::value_type) << " "
+         << endl;
 }
-int main(int argc, char *argv[])
+int main()
 {
-    return test_3(argc,argv);
+    test_3();
+//    dump(m1);
+//list constructor
+ 
+// // copy constructor
+//     voba::unordered_map<int, std::string> m3 = m2;
+ 
+// // move constructor
+//     voba::unordered_map<int, std::string> m4 = std::move(m2);
+ 
+// // range constructor
+//    // std::vector<std::pair<std::bitset<8>, int>> v = { {0x12, 1}, {0x01,-1} };
+//    // voba::unordered_map<std::bitset<8>, double> m5(v.begin(), v.end());
+ 
+// //constructor for a custom type
+//    voba::unordered_map<Key, std::string, KeyHash, KeyEqual> m6 = {
+//        { {"John", "Doe"}, "example"},
+//        { {"Mary", "Sue"}, "another"}
+//     };
+//    if(0) {
+//      voba::unordered_map<Key, std::string, KeyHash, KeyEqual>::iterator it =
+//        m6.begin();
+//      it++;
+//      cout << it->first.first << endl;
+//    }
+//    if(0) {
+//      voba::unordered_map<Key, std::string, KeyHash, KeyEqual>::const_iterator it =
+//        m6.cbegin();
+//      it++;
+//      cout << it->first.first << endl;
+//    }
 }
-/* Local Variables: */
-/* mode:c */
-/* c-basic-offset: 4*/
-/* End: */
+
+
+// Local Variables:
+// mode:c++
+// coding: undecided-unix
+// End:
