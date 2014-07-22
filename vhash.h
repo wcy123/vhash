@@ -61,6 +61,9 @@ namespace voba {
     template <typename T,bool empty>
     class allocate_bucket;
 #define AB allocate_bucket<unordered_map,std::is_empty<mapped_type>::value >::op
+#define KEY extract_key<unordered_map, std::is_empty<mapped_type>::value>::op
+    template<typename T, bool empty>
+    class extract_key;
     
     template<
         class Key,
@@ -168,7 +171,8 @@ namespace voba {
                         s = static_cast<size_type>(-1);
                     case NORMAL:
                         for(++s; s < me->get_n_of_bucket();++s){
-                            if(me->is_occupied(me->bucket[s].first)){
+                            if(me->is_occupied(
+                                   KEY(me->bucket[s]))){
                                 flag = NORMAL;
                                 return;
                             }
@@ -550,15 +554,15 @@ namespace voba {
                 size_type       ret = s;
                 size_type       i   = 0;
                 while(i< max_probe){
-                    if(is_empty(bucket[s].first)){
+                    if(is_empty(KEY(bucket[s]))){
                         if(ret == s0) {
                             // all slot are occupied.
                             ret = s;
                         }
                         break;
-                    }else if(is_deleted(bucket[s].first)){ // found a deleted slot.
+                    }else if(is_deleted(KEY(bucket[s]))){ // found a deleted slot.
                         ret = s;
-                    }else if(equal(bucket[s].first,k)){
+                    }else if(equal(KEY(bucket[s]),k)){
                         ret = s;
                         break;
                     }
@@ -570,13 +574,13 @@ namespace voba {
                 if(i == max_probe){
                     return NULL;
                 }
-                assert(((is_deleted(bucket[ret].first) || is_empty(bucket[ret].first)) || 
-                        (equal(bucket[ret].first, k))));
+                assert(((is_deleted(KEY(bucket[ret])) || is_empty(KEY(bucket[ret]))) || 
+                        (equal(KEY(bucket[ret]), k))));
                 return &(bucket[ret]);
             }
         value_type* my_insert(const value_type& a)
             {
-                const key_type &k = a.first;
+                const key_type &k = KEY(a);
                 if(is_empty(k)) {
                     assign_v0v1(v0,a);
                     return v0;
@@ -597,7 +601,7 @@ namespace voba {
                     assert(0 && "out of bucket");
                     abort();
                 }
-                if(!is_occupied(p->first)){
+                if(!is_occupied(KEY(*p))){
                     n_of_elt++;
                 }
                 assign(p,a);
@@ -606,14 +610,14 @@ namespace voba {
         template<typename T1, typename Iter>
         static Iter my_find(T1 me, const key_type & k)
             {
-                if(me.v0 && me.equal(me.v0->first, k)) return Iter(&me,0,V0);
-                if(me.v1 && me.equal(me.v1->first, k)) return Iter(&me,0,V1);
+                if(me.v0 && me.equal(KEY(*me.v0), k)) return Iter(&me,0,V0);
+                if(me.v1 && me.equal(KEY(*me.v1), k)) return Iter(&me,0,V1);
                 const size_type s0 = me.s_mod_n_of_bucket(me.hash_m(k));
                 size_type i = 0;
                 size_type s = s0;
                 const size_type max_probe = me.n_of_bucket;
-                while(i < max_probe && !me.is_empty(me.bucket[s].first)){
-                    if(me.equal(me.bucket[s].first,k)){
+                while(i < max_probe && !me.is_empty(KEY(me.bucket[s]))){
+                    if(me.equal(KEY(me.bucket[s]),k)){
                         return Iter(&me,s, NORMAL);
                     }
                     i++;
@@ -660,12 +664,13 @@ namespace voba {
                 assert(bucket);
                 for(size_type n = 0 ; n < old_size; ++n){
                     value_type * kv = &old_bucket[n];
-                    if(!is_occupied(kv->first)) continue;
-                    const size_type s0 = s_mod_n_of_bucket(hash_m(static_cast<const Key>(kv->first)));
+                    if(!is_occupied(KEY(*kv)))
+                        continue;
+                    const size_type s0 = s_mod_n_of_bucket(hash_m(static_cast<const Key>(KEY(*kv))));
                     size_type i = 0;
                     size_type s = s0;
                     const size_type max_probe =  MAX_PROBE_ATTEMPT;
-                    while(i < max_probe && !is_empty(bucket[s].first)){
+                    while(i < max_probe && !is_empty(KEY(bucket[s]))){
                         i++;
                         VHASH_PROBE(s,i);
                     }
@@ -719,13 +724,37 @@ namespace voba {
                 return ret;
             }
     };
+    template<typename T>
+    class extract_key<T,true> {
+    public:
+        static const typename T::key_type& op(const typename  T::value_type & a)
+            {
+                return a;
+            }
+        static typename T::key_type& op(typename  T::value_type & a)
+            {
+                return a;
+            }
+    };
+    template<typename T>
+    class extract_key<T,false> {
+    public:
+        static const typename T::key_type& op(const typename T::value_type & a)
+            {
+                return a.first;
+            }
+        static typename T::key_type& op(typename T::value_type & a)
+            {
+                return a.first;
+            }
+    };
     template<
         class Key,
         class Hash = std::hash<Key>, // std::hash(const char*) has poor performance
         class KeyEqual = std::equal_to<Key>,
         class Allocator = std::allocator< Key >
         > 
-    using set = unordered_map<Key,Hash,KeyEqual,Allocator>;
+    using set = unordered_map<Key,Empty,Hash,KeyEqual,Allocator>;
 }
 namespace std {
     template<class Key, class T, class Hash = std::hash<Key>, class KeyEqual = std::equal_to<Key>,
