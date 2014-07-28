@@ -91,42 +91,27 @@ namespace voba {
         START, V0, V1, NORMAL, END
       };
     public:
-        template<typename T1, typename T2, typename T3>
+        template<typename T1, typename reference_type, typename pointer_type>
         struct unordered_map_iterator {
         public:
             unordered_map_iterator()
-              : me(nullptr),s(0), flag(END)
+              : me(nullptr),p(0)
                 {
                 }
             ~unordered_map_iterator() {}
         private:
-            unordered_map_iterator(T1 * m, bool is_end)
-                : me(m),s(0), flag(is_end?END:START)
-                {
-                    find_next();
-                }
-            unordered_map_iterator(T1 * m, size_type __s, state f)
-                : me(m),s(__s), flag(f)
+            unordered_map_iterator(T1 * m, pointer_type __p)
+                : me(m),p(__p)
                 {
                 }
         public:
-            T2 operator*() const
+            reference_type operator*() const
                 {
-                    switch(flag){
-                    case NORMAL:
-                        return me->bucket[s];
-                    case V0:
-                        return *me->v0;
-                    case V1:
-                        return *me->v1;
-                    default:
-                        assert(false);
-                    }
-                    abort();
+                    return *p;
                 }
-            T3 operator->() const
+            pointer_type operator->() const
                 {
-                    return &(operator*());
+                    return p;
                 }
             unordered_map_iterator& operator++()
                 {
@@ -134,52 +119,37 @@ namespace voba {
                     return *this;
                 }
             unordered_map_iterator operator++(int) { unordered_map_iterator tmp(*this); ++*this; return tmp; }
-            
-            // Comparison.
             template<typename It>
             bool operator==(const It& it) const {
-                switch(flag){
-                case NORMAL:
-                case V1:
-                case V0:
-                    return flag == it.flag && s == it.s;
-                case END:
-                    return flag == it.flag;
-                default:
-                    assert(false);
-                }
-                abort();
-                return true;
+                return p == it.p;
             }
             bool operator!=(const unordered_map_iterator& it) const { return ! (*this == it); }
 
         private:
             T1* me;
-            size_type s;
-            state flag;
+            pointer_type p;
             friend class unordered_map;
         private:
             void find_next()
                 {
-                    // note, no "break" at each branch of "case"
-                    switch(flag){
-                    case START:
-                        if(me->v0){ flag = V0; return ;}
-                    case V0:
-                        if(me->v1){ flag = V1; return ;}
-                    case V1:
-                        s = static_cast<size_type>(-1);
-                    case NORMAL:
-                        for(++s; s < me->get_n_of_bucket();++s){
-                            if(me->is_occupied(
-                                   KEY(me->bucket[s]))){
-                                flag = NORMAL;
-                                return;
-                            }
+                    if(p >= me->bucket && (p - me->bucket) < me->get_n_of_bucket()){
+                        ++p;
+                        if(p == me->bucket + me->get_n_of_bucket()){
+                            p = me->v0?me->v0:me->v1;
+                            return;
                         }
-                    default:
-                        flag = END;
+                        return;
                     }
+                    if(p == me->v1){
+                        p = 0;
+                        return;
+                    }
+                    if(p == me->v0){
+                        p = me->v1;
+                        return;
+                    }
+                    p = 0;
+                    return;
                 }
         };
         typedef unordered_map_iterator<unordered_map, reference,pointer> iterator;
@@ -440,19 +410,19 @@ namespace voba {
             }
         iterator begin() noexcept
             {
-                return iterator(this,false);
+                return iterator(this,bucket);
             }
         const_iterator begin() const noexcept
             {
-                return const_iterator(this,false);
+                return const_iterator(this,bucket);
             }
         iterator end() noexcept
             {
-                return iterator(this,true);
+                return iterator(this,0);
             }
         const_iterator end() const noexcept
             {
-                return const_iterator(this,true);
+                return const_iterator(this,0);
             }
         
     private:
@@ -614,37 +584,34 @@ namespace voba {
         template<typename T1, typename Iter>
         static Iter my_find(T1 me, const key_type & k)
             {
-                if(me.v0 && me.equal(KEY(*me.v0), k)) return Iter(&me,0,V0);
-                if(me.v1 && me.equal(KEY(*me.v1), k)) return Iter(&me,0,V1);
                 const size_type s0 = me.s_mod_n_of_bucket(me.hash_m(k));
                 size_type i = 0;
                 size_type s = s0;
                 const size_type max_probe = me.n_of_bucket;
                 while(i < max_probe && !me.is_empty(KEY(me.bucket[s]))){
                     if(me.equal(KEY(me.bucket[s]),k)){
-                        return Iter(&me,s, NORMAL);
+                        return Iter(&me,me.bucket + s);
                     }
                     i++;
                     VHASH_PROBE(s,i);
                 }
-                return Iter(&me,i, END);
+                if(me.v0 && me.equal(KEY(*me.v0), k)) return Iter(&me,me.v0);
+                if(me.v1 && me.equal(KEY(*me.v1), k)) return Iter(&me,me.v1);
+                return Iter(&me,0);
             }
         bool
         my_erase(iterator __position)
             {
-                switch(__position.flag)
-                {
-                case V0: release_v0v1(v0); break;
-                case V1: release_v0v1(v1); break;
-                case NORMAL:
-                    assign(bucket + __position.s, make_pair(DELETED(),mapped_type()));
+                if(__position.p == v0){
+                     release_v0v1(v0);
+                }else if(__position.p == v1){
+                     release_v0v1(v1); 
+                }else{
+                    assign(__position.p, make_pair(DELETED(),mapped_type()));
                     n_of_elt --;
                     if(n_of_elt * VHASH_SHRINK_THRESHOLD < get_n_of_bucket()){
                         shrink();
                     }
-                    break;
-                default:
-                    assert(false);
                 }
                 return true;
             }
@@ -719,7 +686,7 @@ namespace voba {
             {
                 typename T::value_type* ret =  alloc.allocate(s);
                 for(size_t i = 0 ; i < s; ++i){
-                    new(ret+i) typename T::value_type(T::EMPTY);
+                    new(ret+i) typename T::value_type(T::EMPTY());
                 }
                 return ret;
             }
