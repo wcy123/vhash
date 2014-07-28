@@ -132,7 +132,7 @@ namespace voba {
         private:
             void find_next()
                 {
-                    if(p >= me->bucket && (p - me->bucket) < me->get_n_of_bucket()){
+                    if(p >= me->bucket && p  < me->bucket + me->get_n_of_bucket()){
                         ++p;
                         if(p == me->bucket + me->get_n_of_bucket()){
                             p = me->v0?me->v0:me->v1;
@@ -607,7 +607,7 @@ namespace voba {
                 }else if(__position.p == v1){
                      release_v0v1(v1); 
                 }else{
-                    assign(__position.p, make_pair(DELETED(),mapped_type()));
+                    assign(__position.p, std::make_pair(DELETED(),mapped_type()));
                     n_of_elt --;
                     if(n_of_elt * VHASH_SHRINK_THRESHOLD < get_n_of_bucket()){
                         shrink();
