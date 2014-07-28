@@ -471,8 +471,12 @@ namespace voba {
         size_type n_of_probe_sample;
     private:
     public:
-        static const key_type EMPTY;
-        static const key_type DELETED;
+        static const key_type EMPTY() {
+            return key_type(0);
+        };
+        static const key_type DELETED(){
+            return key_type(1);
+        }
     private:
         static size_type my__log2(size_type a)
             {
@@ -490,7 +494,7 @@ namespace voba {
                 zero(0)
                 {
                     key_equal equal;
-                    if(equal(unordered_map::EMPTY, unordered_map::DELETED)){
+                    if(equal(unordered_map::EMPTY(), unordered_map::DELETED())){
                         assert(false && "EMPTY should not equal to DELETED");
                         abort();
                     }
@@ -501,12 +505,12 @@ namespace voba {
 
         bool is_empty(const key_type& k) const noexcept
             {
-                return equal(k,EMPTY);;
+                return equal(k,EMPTY());;
             }
     
         bool is_deleted(const key_type& k) const noexcept
             {
-                return equal(k,DELETED);
+                return equal(k,DELETED());
             }
         bool is_occupied(const key_type& k) const noexcept
             {
@@ -633,7 +637,7 @@ namespace voba {
                 case V0: release_v0v1(v0); break;
                 case V1: release_v0v1(v1); break;
                 case NORMAL:
-                    assign(bucket + __position.s, make_pair(DELETED,mapped_type()));
+                    assign(bucket + __position.s, make_pair(DELETED(),mapped_type()));
                     n_of_elt --;
                     if(n_of_elt * VHASH_SHRINK_THRESHOLD < get_n_of_bucket()){
                         shrink();
@@ -690,10 +694,6 @@ namespace voba {
 
     };
     template<class Key, class T, class Hash, class KeyEqual, class Allocator >
-    const Key unordered_map<Key,T, Hash, KeyEqual, Allocator>::EMPTY = Key(0);
-    template<class Key, class T, class Hash, class KeyEqual, class Allocator >
-    const Key unordered_map<Key,T, Hash, KeyEqual, Allocator>::DELETED = Key(1);
-    template<class Key, class T, class Hash, class KeyEqual, class Allocator >
     typename unordered_map<Key,T, Hash, KeyEqual, Allocator>::Assert_EMPTY_not_eq_DELETE
     unordered_map<Key,T, Hash, KeyEqual, Allocator>::assert_empty_not_eq_delete;
 
@@ -706,7 +706,7 @@ namespace voba {
                 typename T::value_type* ret =  alloc.allocate(s);
                 for(size_t i = 0 ; i < s; ++i){
                     new(ret+i) typename T::value_type(
-                        T::EMPTY,
+                        T::EMPTY(),
                         typename T::mapped_type());
                 }
                 return ret;
@@ -743,7 +743,7 @@ namespace voba {
             {
                 return a.first;
             }
-        static typename T::key_type& op(typename T::value_type & a)
+        static const typename T::key_type& op(typename T::value_type & a)
             {
                 return a.first;
             }

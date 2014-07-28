@@ -36,19 +36,16 @@ struct KeyEqual {
     }
 };
 template<>
-const std::string voba::unordered_map<std::string, std::string>::EMPTY("0");
+const std::string voba::unordered_map<std::string, std::string>::EMPTY()
+{
+    return string("0");
+}
 template<>
-const std::string voba::unordered_map<std::string, std::string>::DELETED("1");
-template<>
-const Key voba::unordered_map<Key, std::string,
-                              KeyHash,
-                              KeyEqual
-                              >::EMPTY = Key({"a","b"});
-template<>
-const Key voba::unordered_map<Key, std::string,
-                              KeyHash,
-                              KeyEqual
-                              >::DELETED = Key({"deleted","deleted"});
+const std::string voba::unordered_map<std::string, std::string>::DELETED()
+{
+    return string("1");
+}
+
 template <class A>
 void dump(const A & x)
 {
