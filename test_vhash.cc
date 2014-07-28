@@ -35,15 +35,17 @@ struct KeyEqual {
       return lhs.first == rhs.first && lhs.second == rhs.second;
     }
 };
+namespace voba {
 template<>
-const std::string voba::unordered_map<std::string, std::string>::EMPTY()
+const std::string unordered_map<std::string, std::string>::EMPTY()
 {
     return string("0");
 }
 template<>
-const std::string voba::unordered_map<std::string, std::string>::DELETED()
+const std::string unordered_map<std::string, std::string>::DELETED()
 {
     return string("1");
+}
 }
 
 template <class A>
