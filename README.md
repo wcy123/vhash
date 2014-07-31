@@ -32,12 +32,16 @@ i.e.
 s[k] = s[k-1] + k
 ```
 
-`vhash` uses a new probing algorithm
-```
-s[k] = s[0] ^ (1<<(k-1))
-```
-If `s[k]` is a 32 bit ingeter, we get `s[1]` by flipping the first bit of `s[0]`, `s[2]` by flipping the second bit of `s[0]`. The maximum number of probes is `log2(n_of_bucket)`, while other two algorithms, the maximum number of probs is `n_of_bucket`. When we couldnot find a avaiable bucket, we try to enlarge the buckets. 
-Because we do not probe all avaiable buckets, in average, it is hardly to have load factor `n_of_elt/n_of_bucket`, which is larger than 0.5. In a special case, if we add number sequencely, there is no collision at all, so the load factor becomes 1 before enlarging buckets.
+`vhash` uses a new probing algorithm ``` s[k] = s[0] ^ (1<<(k-1)) ```
+If `s[k]` is a 32 bit ingeter, we get `s[1]` by flipping the first bit
+of `s[0]`, `s[2]` by flipping the second bit of `s[0]`. The maximum
+number of probes is `log2(n_of_bucket)`, while other two algorithms,
+the maximum number of probs is `n_of_bucket`. When we couldnot find a
+avaiable bucket, we try to enlarge the buckets.  Because we do not
+probe all avaiable buckets, in average, it is hardly to have load
+factor `n_of_elt/n_of_bucket`, which is larger than 0.5. In a special
+case, if we add number sequencely, there is no collision at all, so
+the load factor becomes 1 before enlarging buckets.
 
 
 benchmark
