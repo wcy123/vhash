@@ -79,8 +79,14 @@ typedef voba::unordered_map<const char *, int64_t, my_hash> str_hash_t;
 #define DELETE_STR_FROM_HASH(key) str_hash.erase(key)
 #include "template.c"
 ```
-It is important to have a better hashing function. This algorithm is very sensitive to the hashing function, whether hash value is randomly distributed or not. 
-Typically, a new string pointer has 8-byte or 16-byte alignment so that the last 3 or 4 bits are always be zero. This leads to very bad performance with the new probing algorithm. After shifting 4-bit to left, we have satisfied performance.
+
+It is important to have a better hashing function. This algorithm is
+very sensitive to the hashing function, whether hash value is randomly
+distributed or not.  Typically, a new string pointer has 8-byte or
+16-byte alignment so that the last 3 or 4 bits are always be
+zero. This leads to very bad performance with the new probing
+algorithm. After shifting 4-bit to left, we have satisfied
+performance.
 
 
 
