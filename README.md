@@ -62,14 +62,8 @@ build/vhash: src/vhash_test.cc src/template.c
 #include <inttypes.h>
 #include <vhash.h>
 typedef voba::unordered_map<int64_t, int64_t> hash_t;
-struct my_equal {
-  bool operator()(const char * a, const char * b){
-    return a == b;
-  }
-};
 struct my_hash {
   size_t operator()(const char * a){
-    //return static_cast<size_t>(reinterpret_cast<const int64_t>(a)>>4);
     return static_cast<size_t>(reinterpret_cast<const int64_t>(a) >> 4);
   }
 };
@@ -80,7 +74,10 @@ typedef voba::unordered_map<const char *, int64_t, my_hash> str_hash_t;
 #define INSERT_STR_INTO_HASH(key, value) str_hash.insert(str_hash_t::value_type(key, value))
 #define DELETE_STR_FROM_HASH(key) str_hash.erase(key)
 #include "template.c"
-
 ```
+It is important to have a better hashing function. This algorithm is very sensitive to the hashing function, whether hash value is randomly distributed or not. 
+Typically, a new string pointer has 8-byte or 16-byte alignment so that the last 3 or 4 bits are always be zero. This leads to very bad performance with the new probing algorithm. After shifting 4-bit to left, we have satisfied performance.
+
+
 
 
