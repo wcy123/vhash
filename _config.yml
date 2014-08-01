@@ -1,0 +1,12 @@
+# Site settings
+title: VHASH a faster hashing table 
+email: wcy123@gmail.com
+description: "a hashing table"
+baseurl: ""
+url: "http://wcy123.github.io/vhash/"
+twitter_username: wcy123
+github_username:  wcy123
+
+# Build settings
+markdown: kramdown
+permalink: pretty
