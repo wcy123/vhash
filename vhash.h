@@ -1,4 +1,6 @@
 #pragma once
+#include <iostream>
+#include <iomanip>
 #include <cassert>  // for assert
 #include <utility>  // for std::pair
 #include <cstddef>  // for size_t ptrdiff_t
@@ -362,7 +364,17 @@ namespace voba {
             }
         iterator find(const key_type& k)
             {
-                return my_find<unordered_map&, iterator>(*this,k);
+                iterator it = my_find<unordered_map&, iterator>(*this,k);
+                if(0){
+                    std::cerr <<  __FILE__ << ":" << __LINE__ << ": [" << __FUNCTION__<< "] "
+                          << "after insert  n_of_elt "  <<  n_of_elt << " "
+                          << "this "  << this << " "
+                          << "*it "  << it.p << " "
+                        ;
+                    if(it.p) std::cerr << "*it "  << std::hex <<  KEY(*it.p) << std::dec << " ";
+                    std::cerr << std::endl;
+                }
+                return it;
             }
         const_iterator
         find(const key_type& k) const
@@ -569,8 +581,18 @@ namespace voba {
                 for(i = 0, p = find_insert_pos(k,max_probe);
                     p == NULL && i < MAX_GROW_ATTEMPT;
                     p = find_insert_pos(k,max_probe)){
+                    if(0) std::cerr <<  __FILE__ << ":" << __LINE__ << ": [" << __FUNCTION__<< "] "
+                              << "p "  << p << " "
+                              << "this "  << this << " "
+                              << " n_of_elt "  <<  n_of_elt << " "
+                              << std::endl;
                     grow();
                 }
+                if(0) std::cerr <<  __FILE__ << ":" << __LINE__ << ": [" << __FUNCTION__<< "] "
+                          << "found p "  << p << " "
+                          << "this "  << this << " "
+                          << " n_of_elt "  <<  n_of_elt << " "
+                          << std::endl;
                 if(!p){
                     assert(0 && "out of bucket");
                     abort();
@@ -578,6 +600,10 @@ namespace voba {
                 if(!is_occupied(KEY(*p))){
                     n_of_elt++;
                 }
+                if(0) std::cerr <<  __FILE__ << ":" << __LINE__ << ": [" << __FUNCTION__<< "] "
+                          << "p "  << p << " "
+                          << "after insert  n_of_elt "  <<  n_of_elt << " "
+                          << std::endl;
                 assign(p,a);
                 return p;
             }
@@ -618,6 +644,11 @@ namespace voba {
 
         void grow()
             {
+                if(0) std::cerr <<  __FILE__ << ":" << __LINE__ << ": [" << __FUNCTION__<< "] "
+                          << "this "  << this << " "
+                          << "get_n_of_bucket "  << get_n_of_bucket() << " "
+                          << "get_n_of_elt "  << n_of_elt << " "
+                          << std::endl;
                 n_of_grow ++;
                 resize(1);
                 return;
