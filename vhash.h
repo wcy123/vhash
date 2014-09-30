@@ -63,9 +63,9 @@ namespace voba {
     template <typename T,bool empty>
     class allocate_bucket;
 #define AB allocate_bucket<unordered_map,std::is_empty<mapped_type>::value >::op
-#define KEY extract_key<unordered_map, std::is_empty<mapped_type>::value>::op
+#define KEY value_type_wrapper<unordered_map, std::is_empty<mapped_type>::value>::key
     template<typename T, bool empty>
-    class extract_key;
+    class value_type_wrapper;
     
     template<
         class Key,
@@ -526,10 +526,10 @@ namespace voba {
                 }
                 allocator.deallocate(bucket,get_n_of_bucket());
             }
-        void assign(value_type* p, const value_type & v )
+        void assign(value_type* p, const value_type & a)
             {
                 p->~value_type();
-                new(p) value_type(v);
+                new(p) value_type(a);
             }
         value_type *
         find_insert_pos(const key_type& k, size_t max_probe)
@@ -633,7 +633,7 @@ namespace voba {
                 }else if(__position.p == v1){
                      release_v0v1(v1); 
                 }else{
-                    assign(__position.p, std::make_pair(DELETED(),mapped_type()));
+                    value_type_wrapper<unordered_map, std::is_empty<mapped_type>::value>::delete_it(__position.p);
                     n_of_elt --;
                     if(n_of_elt * VHASH_SHRINK_THRESHOLD < get_n_of_bucket()){
                         shrink();
@@ -723,27 +723,41 @@ namespace voba {
             }
     };
     template<typename T>
-    class extract_key<T,true> {
+    class value_type_wrapper<T,true> {
+        typedef typename T::value_type value_type;
+        typedef typename T::key_type key_type;
     public:
-        static const typename T::key_type& op(const typename  T::value_type & a)
+        static const key_type& key(const value_type & a)
             {
                 return a;
             }
-        static typename T::key_type& op(typename  T::value_type & a)
+        static key_type& key(value_type & a)
             {
                 return a;
+            }
+        static void delete_it(value_type* p)
+            {
+                p->~key_type();
+                new(p) key_type(T::DELETED());
             }
     };
     template<typename T>
-    class extract_key<T,false> {
+    class value_type_wrapper<T,false> {
+        typedef typename T::value_type value_type;
+        typedef typename T::key_type key_type;
     public:
-        static const typename T::key_type& op(const typename T::value_type & a)
+        static const key_type& key(const value_type & a)
             {
                 return a.first;
             }
-        static const typename T::key_type& op(typename T::value_type & a)
+        static const key_type& key(value_type & a)
             {
                 return a.first;
+            }
+        static void delete_it(value_type* p)
+            {
+                p->~value_type();
+                new(p) value_type(std::make_pair(T::DELETED(),typename T::mapped_type()));
             }
     };
     template<
