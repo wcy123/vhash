@@ -1,4 +1,11 @@
-CXXFLAGS=-ggdb -O0 -Wall -pedantic -Werror -std=c++11
+CXXFLAGS=-Wall -pedantic -Werror -std=c++11
+ifneq ($(CONFIG),release)
+	CFLAGS += -ggdb -O0
+	CXXFLAGS += -ggdb -O0
+else
+	CFLAGS += -O3 -DNDEBUG
+	CXXFLAGS += -O3 -DNDEBUG
+endif
 
 
 
