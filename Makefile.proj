@@ -1,0 +1,21 @@
+CXXFLAGS=-Wall -pedantic -Werror -std=c++11
+
+all: test_vhash.out
+
+test_vhash: test_vhash.cc vhash.h
+	$(CXX) $(CXXFLAGS) -o $@ $<
+
+test_vhash.out: test_vhash
+	./test_vhash > $@
+
+install_files += $(includedir)/vhash.h
+$(includedir)/vhash.h: vhash.h
+	$(INSTALL) $< $@
+
+CLEANED_FILES += test_vhash.out
+
+
+# Local Variables:
+# mode:makefile
+# coding: utf-8-unix
+# End:
