@@ -22,3 +22,5 @@
 
 test_vhash
 test_vhash.out
+depend.inc
+
