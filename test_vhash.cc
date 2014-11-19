@@ -102,6 +102,20 @@ void test_2()
     }
     dump(m2);
 }
+void test_4()
+{
+    voba::unordered_map<int, std::string> m2 =
+        {
+            {0, "a"},
+            {1, "b"},
+            {2, "c"},
+            {3, "d"},
+            {4, "e"},
+            {5, "f"},
+            {6, "g"},
+        };
+    dump(m2);
+}
 void test_3()
 {
     typedef voba::set<int> a;
@@ -113,7 +127,7 @@ void test_3()
 }
 int main()
 {
-    test_3();
+    test_4();
 //    dump(m1);
 //list constructor
  

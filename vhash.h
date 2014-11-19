@@ -105,6 +105,9 @@ namespace voba {
             unordered_map_iterator(T1 * m, pointer_type __p)
                 : me(m),p(__p)
                 {
+                    if(p && !me->is_occupied(KEY(*p))){
+                        find_next();
+                    }
                 }
         public:
             reference_type operator*() const
@@ -135,22 +138,28 @@ namespace voba {
             void find_next()
                 {
                     if(p >= me->bucket && p  < me->bucket + me->get_n_of_bucket()){
-                        ++p;
-                        if(p == me->bucket + me->get_n_of_bucket()){
-                            p = me->v0?me->v0:me->v1;
-                            return;
+                        do{
+                            ++p;
+                            if((p < me->bucket + me->get_n_of_bucket())){
+                                if(me->is_occupied(KEY(*p))){
+                                    break;
+                                }
+                            }else{
+                                p = me->v0?me->v0:me->v1;
+                                break;
+                            }
+                        }while(1);
+                    }else{
+                        if(p == me->v1){
+                            p = 0;
+                        }else{
+                            if(p == me->v0){
+                                p = me->v1;
+                            }else{
+                                p = 0;
+                            }
                         }
-                        return;
                     }
-                    if(p == me->v1){
-                        p = 0;
-                        return;
-                    }
-                    if(p == me->v0){
-                        p = me->v1;
-                        return;
-                    }
-                    p = 0;
                     return;
                 }
         };

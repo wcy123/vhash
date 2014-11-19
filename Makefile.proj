@@ -1,4 +1,4 @@
-CXXFLAGS=-Wall -pedantic -Werror -std=c++11
+CXXFLAGS+=-Wall -pedantic -Werror -std=c++11 
 
 all: test_vhash.out
 
@@ -12,7 +12,7 @@ install_files += $(includedir)/vhash.h
 $(includedir)/vhash.h: vhash.h
 	$(INSTALL) $< $@
 
-CLEANED_FILES += test_vhash.out
+CLEANED_FILES += test_vhash.out test_vhash
 
 
 # Local Variables:
