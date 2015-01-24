@@ -102,6 +102,15 @@ void test_2()
     }
     dump(m2);
 }
+void test_3()
+{
+    typedef voba::set<int> a;
+    typedef voba::unordered_map<int, int> b;
+    cerr <<  __FILE__ << ":" << __LINE__ << " [" << __FUNCTION__<< "] "
+         << "a::value_type "  << sizeof(a::value_type) << " "
+         << "b::value_type "  << sizeof(b::value_type) << " "
+         << endl;
+}
 void test_4()
 {
     voba::unordered_map<int, std::string> m2 =
@@ -116,48 +125,12 @@ void test_4()
         };
     dump(m2);
 }
-void test_3()
-{
-    typedef voba::set<int> a;
-    typedef voba::unordered_map<int, int> b;
-    cerr <<  __FILE__ << ":" << __LINE__ << " [" << __FUNCTION__<< "] "
-         << "a::value_type "  << sizeof(a::value_type) << " "
-         << "b::value_type "  << sizeof(b::value_type) << " "
-         << endl;
-}
 int main()
 {
+    test_1();
+    test_2();
+    test_3();
     test_4();
-//    dump(m1);
-//list constructor
- 
-// // copy constructor
-//     voba::unordered_map<int, std::string> m3 = m2;
- 
-// // move constructor
-//     voba::unordered_map<int, std::string> m4 = std::move(m2);
- 
-// // range constructor
-//    // std::vector<std::pair<std::bitset<8>, int>> v = { {0x12, 1}, {0x01,-1} };
-//    // voba::unordered_map<std::bitset<8>, double> m5(v.begin(), v.end());
- 
-// //constructor for a custom type
-//    voba::unordered_map<Key, std::string, KeyHash, KeyEqual> m6 = {
-//        { {"John", "Doe"}, "example"},
-//        { {"Mary", "Sue"}, "another"}
-//     };
-//    if(0) {
-//      voba::unordered_map<Key, std::string, KeyHash, KeyEqual>::iterator it =
-//        m6.begin();
-//      it++;
-//      cout << it->first.first << endl;
-//    }
-//    if(0) {
-//      voba::unordered_map<Key, std::string, KeyHash, KeyEqual>::const_iterator it =
-//        m6.cbegin();
-//      it++;
-//      cout << it->first.first << endl;
-//    }
 }
 
 
