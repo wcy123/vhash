@@ -105,8 +105,12 @@ namespace voba {
             unordered_map_iterator(T1 * m, pointer_type __p)
                 : me(m),p(__p)
                 {
-                    if(p && !me->is_occupied(KEY(*p))){
-                        find_next();
+                    if(p){
+                        if(p == me->v1 || p == me->v0){
+                            // a valid v0 and v1; do nothing.
+                        }else if(!me->is_occupied(KEY(*p))){
+                            find_next();
+                        }
                     }
                 }
         public:
