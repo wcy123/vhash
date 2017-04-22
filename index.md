@@ -20,7 +20,7 @@ $$
  s_0 &=& H + 0 \\
  s_1 &=& H + 1  \\
  &...&  \\
- s_k &=& H + k 
+ s_k &=& H + k
 \end{aligned}
 $$
 
@@ -54,7 +54,7 @@ $$
 $$\oplus$$ means bit-wise XOR.
 
 If $$s_k$$ is a 32 bit ingeter, we get $$s_1$$ by flipping the first bit
-of $$s_0$$, $$s_2$$ by flipping the second bit of $$s_0$$. The maximum
+of $$s_0$$, $$s_2$$ by flipping the second bit of $$s_0$$, and so on. The maximum
 number of probes is $$\log_2(N)$$, where $$N$$ is the number of buckets.
 For other two algorithms, the maximum number of probes is $$N$$. When no
 avaiable bucket could be found, we try to enlarge the buckets.
@@ -75,7 +75,7 @@ how to add `vhash` into the benchmark
 --------------------------------------
 
 1. change the `Makefile` as below
-     
+
 {% highlight makefile %}
 build/vhash: src/vhash_test.cc src/template.c
   g++ -std=c++11 -O2 -I ~/d/working/vhash  src/vhash_test.cc -o build/vhash  -lm
@@ -102,13 +102,9 @@ typedef voba::unordered_map<const char *, int64_t, my_hash> str_hash_t;
 {% endhighlight %}
 
 It is important to have a better hashing function. This algorithm is
-very sensitive to the hashing function, whether hash value is randomly
+very sensitive to the hashing function, i.e. whether hash value is randomly
 distributed or not.  Typically, a new string pointer has 8-byte or
 16-byte alignment so that the last 3 or 4 bits are always be
 zero. This leads to very bad performance with the new probing
 algorithm. After shifting 4-bit to left, we have satisfied
 performance.
-
-
-
-
